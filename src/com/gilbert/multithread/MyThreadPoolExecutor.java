@@ -1,4 +1,4 @@
-package com.gilbert;
+package com.gilbert.multithread;
 import java.util.HashSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -25,6 +25,9 @@ class MyTask implements Runnable {
     }
 }
 
+/**
+ * 简单实现线程池
+ */
  class MyThreadPoolExecutor {
 
     private final BlockingQueue<Runnable> workQueue;// 待执行的任务，相当于任务缓冲区，其实例对象有ArrayBlockingQueue,LinkedBlockingQueue等
@@ -47,6 +50,11 @@ private final HashSet<Worker> workers = new HashSet<Worker>();// 线程池中的
         this.timeUnit = timeUnit; 
     }
     // 主要方法的实现
+
+    /**
+     * 执行一个任务的主要过程是什么?
+     * @param task
+     */
     public void execute(Runnable task) {
         if (task == null) {
             throw new IllegalArgumentException("The parameter is not null");

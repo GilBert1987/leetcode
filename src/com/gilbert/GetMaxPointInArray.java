@@ -4,7 +4,6 @@ package com.gilbert;
  * 一个数组先递增，后递减 求最大数
  */
 public class GetMaxPointInArray {
-
     public static int getMagicNunberIndex(int [] array) {
         if (array == null || array.length == 0) {
             return -1;

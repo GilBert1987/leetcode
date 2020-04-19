@@ -1,4 +1,4 @@
-package com.gilbert;
+package com.gilbert.design;
 
 import com.sun.tools.javac.util.Assert;
 
@@ -99,6 +99,5 @@ public class LRU {
         lru.put("4", 1);
         Assert.checkNull(lru.get("1"));
         Assert.checkNonNull(lru.get("4"));
-
     }
 }

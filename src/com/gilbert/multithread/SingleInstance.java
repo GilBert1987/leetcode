@@ -1,4 +1,4 @@
-package com.gilbert;
+package com.gilbert.multithread;
 
 /**
  * 单利

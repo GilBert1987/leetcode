@@ -31,6 +31,4 @@ public class IsValidBST {
         System.out.println(new IsValidBST().isValidBST(TreeUtils.buildTreeFromArray(new Integer[] {5,1,4,null,null,3,6})));
         System.out.println(new IsValidBST().isValidBST(TreeUtils.buildTreeFromArray(new Integer[] {5,1,8,null,null,6,9})));
     }
-
-
 }
