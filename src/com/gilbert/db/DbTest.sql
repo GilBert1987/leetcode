@@ -14,15 +14,29 @@ select * from information_schema.innodb_locks;
 -- // innodb_lock_waits记录了所有innodb锁的持有和等待关系
 select * from information_schema.innodb_lock_waits
 
+-- INNER join // union 简单的sql的例子
 
-
-
+RR 级别
+b 没有索引
+update table t set c=c+1 where b > 3;
+-- b 没有索引 全表扫描，锁表
+-- b 普通索引 锁住 b> 3的索引项目和Gap 锁 + 对应的主键索引 + Gap 锁
+语句改成
+update table t set c=c+1 where b > 3 and a > 6;
+-- 其中a 唯一索引
+-- 锁住a> 6 的所有索引项目 和Gap 锁
 
 CREATE TABLE `t_test` (
             `id` int(10) PRIMARY KEY AUTO_INCREMENT COMMENT '自增ID',
             `a` int(4) NOT NULL COMMENT 'a',
             `b` int(4) NOT NULL COMMENT 'b',
             `c` int(4) NOT NULL COMMENT 'c'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+            CREATE TABLE `t_test` (
+            `id` int(10) PRIMARY KEY AUTO_INCREMENT COMMENT '自增ID',
+            `a` int(4) NOT NULL COMMENT 'a',
+            `b` int(4) NOT NULL COMMENT 'b',
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 insert values(null, 1, 1, 1)
@@ -86,4 +100,18 @@ commit;
 
 -- where a=1 order by b desc, c;
 // a b using file sort 默认是
+
+    // 数据库乐观锁的实现
+
+
+// 数据库的乐观锁保证库存的正确性
+//    while(true) {
+//        Result result = select * from table where id= #{id};
+//        int ret = update table set amount = amount - 1, version = result.version + 1 where version = #result.version;
+//        if(ret == 1) { // 更新成功
+//            break;
+//        }
+//    }
+
+    // 数据库的加锁的时机 当前读 加锁
 

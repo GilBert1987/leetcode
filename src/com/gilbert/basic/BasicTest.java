@@ -42,5 +42,10 @@ public class BasicTest {
         Point p = new Point(1,1);
         BasicTest.function(i, a, b, c, p);
         System.out.println(i+","+ a+","+b+","+c +"," + p);
+
+        String str = "123";
+        for (int k = 0; k < str.length(); k++) {
+            System.out.println(str.charAt(k) + ",");
+        }
     }
 }

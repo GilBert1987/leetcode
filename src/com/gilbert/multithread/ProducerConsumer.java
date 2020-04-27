@@ -1,7 +1,6 @@
 package com.gilbert.multithread;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -30,6 +29,7 @@ public class ProducerConsumer {
             lock.lock();
             while (products.size() == maxSize) { // 使用if 还是 while 什么叫做 假唤醒
                 System.out.println("producer waiting");
+                // 线程状态 sleep 和 await 的区别
                 producer.await(); // 调用await 的时候发生了什么
                 // 加入条件队列
                 // 释放锁，从同步队列中摘除，修改state
