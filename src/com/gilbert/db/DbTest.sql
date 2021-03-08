@@ -1,6 +1,27 @@
 // 数据库 加锁分析 RR 级别 RC 级别
 // MYSQL RR 级别和RC 级别的区别
 //
+
+-- InnoDB的MVCC是通过在每行记录后面保存两个隐藏的列来实现的。
+-- 一个保存了行的事务ID（DB_TRX_ID），一个保存了行的回滚指针（DB_ROLL_PT）
+-- 每开始一个新的事务，都会自动递增产 生一个新的事务id。事务开始时刻的会把事务id放到当前事务影响的行事务id中，
+-- 当查询时需要用当前事务id和每行记录的事务id进行比较。
+-- InnoDB只查找版本早于当前事务版本的数据行（也就是，行的事务编号小于或等于当前事务的事务编号），
+-- 这样可以确保事务读取的行，要么是在事务开始前已经存在的，要么是事务自身插入或者修改过的。
+-- MVCC只在REPEATABLE READ和READ COMMITIED两个隔离级别下工作
+
+
+-- InnoDB中通过undo log实现了数据的多版本，而并发控制通过锁来实现。
+-- undo log除了实现MVCC外，还用于事务的回滚。
+-- binlog，是mysql服务层产生的日志，常用来进行数据恢复、数据库复制，
+-- 常见的mysql主从架构，就是采用slave同步master的binlog实现的, 另外通过解析binlog能够实现mysql到其他数据源
+
+--redo log记录了数据操作在物理层面的修改
+
+-- InnoDB行记录中除了刚才提到的rowid外，还有trx_id和db_roll_ptr,
+-- trx_id表示最近修改的事务的id,db_roll_ptr指向undo segment中的undo log。
+
+
 set session autocommit=0;
 show session variables like 'autocommit';
 
@@ -16,11 +37,10 @@ select * from information_schema.innodb_lock_waits
 
 -- INNER join // union 简单的sql的例子
 
-RR 级别
 b 没有索引
 update table t set c=c+1 where b > 3;
 -- b 没有索引 全表扫描，锁表
--- b 普通索引 锁住 b> 3的索引项目和Gap 锁 + 对应的主键索引 + Gap 锁
+-- RR 级别 b 普通索引 锁住 b> 3的索引项目和Gap 锁 + 对应的主键索引 + Gap 锁
 语句改成
 update table t set c=c+1 where b > 3 and a > 6;
 -- 其中a 唯一索引
@@ -33,7 +53,7 @@ CREATE TABLE `t_test` (
             `c` int(4) NOT NULL COMMENT 'c'
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-            CREATE TABLE `t_test` (
+CREATE TABLE `t_test` (
             `id` int(10) PRIMARY KEY AUTO_INCREMENT COMMENT '自增ID',
             `a` int(4) NOT NULL COMMENT 'a',
             `b` int(4) NOT NULL COMMENT 'b',
@@ -114,4 +134,8 @@ commit;
 //    }
 
     // 数据库的加锁的时机 当前读 加锁
+
+--参考
+-- https://zhuanlan.zhihu.com/p/66791480 一文理解Mysql MVCC
+-- https://github.com/hedengcheng/tech/tree/master/database/MySQL
 

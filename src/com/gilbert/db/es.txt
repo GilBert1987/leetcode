@@ -1,0 +1,75 @@
+https://bytedance.feishu.cn/wiki/wikcnB8B7dAPqOCVnDTA4adknig#
+https://www.zhihu.com/question/26446020
+https://zhuanlan.zhihu.com/p/34669354
+分片
+副本
+索引的设置
+mappings Schema
+文档写入索引前要进过分析阶段，用户设置参数，决定是否要分析， 采用什么分析策略，有自动映射，但有时候也有手动配置需求
+
+mapping映射定义索引中有什么字段、字段的类型等结构信息。相当于数据库中表结构定义。因为lucene索引文档时需要知道该如何来索引存储文档的字段。
+类型
+
+text类型
+用于索引全文值字段，例如电子邮件正文或产品说明。这些字段是被分词的。分析过程允许Elasticsearch在每个全文字段中搜索单个单词。
+文本字段不用于排序，很少用于聚合。
+
+keyword类型
+场景：用于索引结构化内容的字段，例如电子邮件地址，主机名，状态代码，邮政编码或标签。
+ 它们通常用于过滤（找到我的所有博客文章，其中 status为published），排序，和聚合。关键字字段只能按其确切值进行搜索。
+
+ 查询模板
+
+ Q1: 单个分片数据量在多少是合理的？
+ A1: 单个shard大小20~50G是合理范围。
+
+ size=0表示不返回其他字段
+
+ 1）批量写入
+ 2）索引Settings中减少副本或者异步写translog
+ 当所有配置异步translog，如果节点异常退出会导致数据丢失的风险
+ 3）索引Mapping中减少需要索引的字段，且关闭dynamic
+ 字符串字段（text和keyword不要同时存在）：
+  字段无需搜索，那么配置"type": "text", "index":false
+  字段需要分词搜索，那么配置 "type": "text"
+  字段无需分词搜索，那么配置 "type": "keyword"
+  字段无需搜索且无需排序，那么配置"type": "keyword", "index":false, "doc_values":false,  从而关闭正排。
+
+数值字段：
+  确认是否需要range查询，如果不需要的话，建议配置类型为"type": "keyword"
+  无需搜索，那么追加配置 "index": false
+  无需聚合或排序：那么追加配置"doc_values": false，从而关闭正排。
+
+4）增加刷新时间间隔（refresh_interval）
+当发生刷新时，索引的shard会新生成一个 Segment，并在稍后的后台任务中进行合并。
+增加刷新时间间隔将降低创建和合并的开销。
+缺陷：写入数据只有在刷新后才能被搜索到，刷新时间过长会导致新写入的数据需要等待更长的时间才能被搜索到。
+
+Query and filter context
+https://segmentfault.com/a/1190000022611664
+
+查询优化
+针对需要过滤的查询条件，这些查询条件尽量写在 filter context 中，此时 Elasticsearch会使用缓存命中查询的文档。例如 query 语句
+
+Shard查询缓存
+针对聚合分析查询，Elasticsearch会缓存各个Shard的聚合结果（cacheKey为查询语句），主要有以下几点需要注意：
+聚合查询语句中设置size为 0：查询语句中size非0的情况下，无法复用缓存。
+聚合查询语句必须完全相同：cacheKey为查询语句，所以需要查询语句保持一致。
+注意聚合查询语句中相对时间的使用：不建议查询中使用像 Date.now 相对时间的变量，从而导致每个查询语句各不相同，
+从而导致缓存始终无效。建议将查询语句中日期时间规整为小时或天级别，以便更有效地利用缓存。
+
+避免使用通配符查询
+针对text和keyword类型字段，请避免以"*"开头搜索，会极大消耗Elasticsearch节点CPU。
+
+增加索引副本
+副本增加，可以有效扩展搜索qps。缺陷：带来额外的存储成本。
+
+6）index sort 加速
+在索引Settings中配置index sort，使得Segment按照指定的字段排序。利用这种有序性，
+使得Segment上的特定查询可以更早的中断返回。缺陷：导致写的吞吐量有所下降。
+
+4）增加刷新时间间隔（refresh_interval）
+增加刷新时间会有效减少索引Segment数量并降低写入和搜索的IO成本。刷新时间过短 (1s) 会频繁除非Segments merge，
+导致老的Segments缓存容易失效，因此增加刷新时间间隔可以更高效地利用缓存。
+
+https://bytedance.feishu.cn/docs/doccny6yvwqkXEBXJIGP99jcr8d#

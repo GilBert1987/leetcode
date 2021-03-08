@@ -34,6 +34,6 @@ public class OddAndEvenSort {
 }
 
     public static void main(String[] argv) {
-        System.out.println(new OddAndEvenSort().sort(new int[] {1, 200, 10, 120, 30, 8, 88, 4}));
+        System.out.println(new OddAndEvenSort().sort(new int[] {1,2,3,4,5,6}));
     }
 }
